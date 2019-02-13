@@ -87,3 +87,10 @@ def sort_by_importance(buildings, strength = (ManaFountain, Portal)):
                 buildings[i], buildings[i+1] = buildings[i+1], buildings[i]
                 buildings_sorted = False
     return buildings
+
+
+def list_contains_type(lst, t):
+    for i in lst:
+        if i.__class__ is t:
+            return True
+    return False

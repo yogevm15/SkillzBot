@@ -149,16 +149,14 @@ def process_attack(game, elf):
             elf.build_portal()
     else:
         attack_portal = utils.get_attack_portal(game)
-        buildings =  utils.get_enemy_buildings_in_range(game, game.get_enemy_castle(), common.defense_range)
+        buildings = utils.get_enemy_buildings_in_range(game, game.get_enemy_castle(), common.defense_range)
         utils.sort_by_importance(buildings)
         if len(buildings) > 0:
             if elf.in_attack_range(buildings[0]):
                 elf.attack(buildings[0])
             else:
                 elf.move_to(buildings[0])
-        else:
-            balagan = True
-        if balagan:
+        if not utils.list_contains_type(buildings, ManaFountain):
             attack_portal.summon_lava_giant()
 
 
