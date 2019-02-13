@@ -1,12 +1,13 @@
 from elf_kingdom import *
 import constants
-
+import Evasion
 # Returns tuple (is should evade: bool, what to evade: map object)
 def should_avoid(game, elf, target):
-    avoidable = game.get_enemy_ice_trolls().extend(game.get_enemy_living_elves())
+    avoidable = game.get_enemy_ice_trolls()
+    avoidable.extend(game.get_enemy_living_elves())
     elfloc = elf.location
     check_circle_loc = elfloc.towards(target, constants.ELF_ENEMY_CHECK_RAD)
-
+    
     closest = None
     closest_dist = None
     for e in avoidable:
@@ -20,7 +21,7 @@ def should_avoid(game, elf, target):
         game.debug("[Evasion]: Found Enemy To Avoid! " + closest)
     else:
         game.debug("[Evasion]: Found Nothing To Avoid!")
-    return (closest == None, closest)
+    return (closest != None, closest)
 
 
 # Returns location

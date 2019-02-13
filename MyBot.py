@@ -5,17 +5,35 @@ import constants
 import building_act as build
 import aggresive_act as attack
 import defensive_act as defense
+import mana as mana
 
 def do_turn(game):
-    global manaReport
-    Default_Values.init(game)
+    init(game)
+    game.debug(enemyElves)
     act = best_act(game)
-    manaReport = ManaClass.HandleMana(game);
+    manaReport = mana.handle_mana(game,0);
     handle_act(game, act)
 
+
+def init(game):
+    game.debug("im here (:")
+    global enemyPortals, enemyElves, enemyCastle, enemyIceTrolls, enemyLavaGiants, enemyManaFountains, myCastle, myPortals, myManaFountains, myElves, myIceTrolls
+    enemyPortals = game.get_enemy_portals()
+    enemyElves = game.get_enemy_living_elves()
+    enemyCastle = game.get_enemy_castle()
+    enemyIceTrolls = game.get_enemy_ice_trolls()
+    enemyLavaGiants = game.get_enemy_lava_giants()
+    enemyManaFountains = game.get_enemy_mana_fountains()
+    myCastle = game.get_my_castle()
+    myPortals = game.get_my_portals()
+    myManaFountains = game.get_my_mana_fountains()
+    myElves = game.get_my_living_elves()
+    myIceTrolls = game.get_my_ice_trolls()
+
+
+
+
 def best_act(game):
-
-
     # Check if should act agressively (if there are at least 2 attack portals)
     num_attack_portals = 0
     for p in myPortals:
