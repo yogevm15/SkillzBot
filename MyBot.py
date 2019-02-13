@@ -1,77 +1,70 @@
 from elf_kingdom import *
-import Default_Values
+import common
+import utils
 import constants
 
-import aggresive_building_act as buildAgg
-import defensive_building_act as buildDef
-import aggresive_act as attack
-import defensive_act as defense
-import mana as mana
+attack_mission_elf = None
+buildings_attacked = {}
+defense_building_elf = None
+
+def init(game):
+    global buildings_attacked
+    for elf in game.get_all_my_elves():
+        buildings_attacked[elf] = None
 
 def do_turn(game):
-    Default_Values.init(game)
-    act = best_act(game)
-    manaReport = mana.handle_mana(game,0);
-    handle_act(game, act)
+    if game.turn == 1:
+        init(game)
 
-def best_act(game):
-    # Check if should act agressively (if there are at least 2 attack portals)
-    num_attack_portals = 0
-    for p in Default_Values.myPortals:
-        if p.distance(Default_Values.enemyCastle) < constants.SUMMON_LAVA_GIANT_RANGE_FROM_CASTLE + 100:
-            num_attack_portals += 1
+    common.update(game)  # Update common variables
 
-    if num_attack_portals > 1:
-        game.debug("[MainBot]: We Have At Least Two Agressive Portals, Elves Attacking Agressive")
-        return 3
-
-
-    # Check if should act defensively
-    if len(Default_Values.enemyElves) > 0 or len(Default_Values.enemyPortals) > 0 or len(Default_Values.enemyManaFountains) > 0:
-        if len(Default_Values.enemyElves) > 0:
-            closestEnemyToCastle = Default_Values.enemyElves[0]
-        elif len(Default_Values.enemyPortals) > 0:
-            closestEnemyToCastle = Default_Values.enemyPortals[0]
+    for elf in game.get_my_living_elves():
+        if elf != attack_mission_elf:
+            process_defense(game, elf)
         else:
-            closestEnemyToCastle = Default_Values.enemyManaFountains[0]
+            process_attack(game, elf)
 
+def process_defense(game, elf):
+    global buildings_attacked
 
-        for e in Default_Values.enemyElves:
-            if e.distance(Default_Values.myCastle)<constants.RANGE_ELF_TO_MY_CASTLE_TO_DEFEND:
-                game.debug("[MainBot]: Elves Acting Defensive elf")
-                return 2
-        for p in Default_Values.enemyPortals:
-            if p.distance(Default_Values.myCastle)<constants.RANGE_PORTAL_TO_MY_CASTLE_TO_DEFEND:
-                print "[MainBot]: Elves Acting Defensive"
-                return 2
-        for m in Default_Values.enemyManaFountains:
-            if m.distance(Default_Values.myCastle)<constants.RANGE_MANA_FOUNTAIN_TO_MY_CASTLE_TO_DEFEND:
-                game.debug("[MainBot]: Elves Acting Defensive mana")
-                return 2
+    buildings_to_destroy = utils.get_enemy_buildings_in_range(game, game.get_my_castle(), common.defense_range)
+    utils.sort_by_distance(buildings_to_destroy, elf)
 
-    # Otherwise build
-    defensePortal = False
-    manaFountains = False
-    for p in Default_Values.myPortals:
-        if p.distance(Default_Values.myCastle) < constants.DEFENSE_PORTAL_RANGE_FROM_MY_CASTLE+100:
-            defensePortal = true
-            game.debug("[MainBot]: We Have Defesive Portal")
-    if len(Default_Values.enemyManaFountains)>1:
-        manaFountains = True
-        game.debug("[MainBot]: We Have Two Mana Fountains")
-    if manaFountains and defensePortal:
-        game.debug("[MainBot]: Elves Acting Aggresive Building")
-        return 1
+    game.debug("Found Buildings To Destroy: " + str(buildings_to_destroy))
+
+    building_to_attack = buildings_attacked[elf]
+    assigned_new = False
+    if building_to_attack == None or building_to_attack not in buildings_to_destroy:
+
+        buildings_attacked[elf] = None
+        game.debug("Assigning New Building To Destroy!")
+        # Find non assigned building
+        for b in buildings_to_destroy:
+            if not b in buildings_attacked.values():
+                buildings_attacked[elf] = b
+                building_to_attack = b
+                assigned_new = True
+                break
+    if not assigned_new and building_to_attack == None:
+        process_defense_build(game, elf)
     else:
-        game.debug("[MainBot]: Elves Acting Defensive Building")
-        return 0
+        game.debug("Destroying " + str(building_to_attack))
+        if elf.in_attack_range(building_to_attack):
+            elf.attack(building_to_attack)
+        else:
+            elf.move_to(building_to_attack)
 
-def handle_act(game, act):
-    if act == 0:
-        buildDef.build_act(game)
-    elif act == 1:
-        buildAgg.build_act(game)
-    elif act == 2:
-        defense.defensive_act(game)
+
+def process_defense_build(game, elf):
+    global defense_building_elf
+    if defense_building_elf == None or defense_building_elf == elf:
+        defense_building_elf = elf
+        game.debug("Building!")
     else:
-        attack.agressive_act(game)
+        process_defense_patrol(game, elf)
+
+def process_defense_patrol(game, elf):
+    pass
+
+def process_attack(game, elf):
+    pass
