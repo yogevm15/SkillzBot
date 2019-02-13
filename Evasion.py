@@ -7,7 +7,7 @@ def should_avoid(game, elf, target):
     avoidable.extend(game.get_enemy_living_elves())
     elfloc = elf.location
     check_circle_loc = elfloc.towards(target, constants.ELF_ENEMY_CHECK_RAD)
-    
+
     closest = None
     closest_dist = None
     for e in avoidable:
@@ -18,7 +18,7 @@ def should_avoid(game, elf, target):
                 closest_dist = dst
                 closest = e
     if closest != None:
-        game.debug("[Evasion]: Found Enemy To Avoid! " + closest)
+        print "[Evasion]: Found Enemy To Avoid! " , closest
     else:
         game.debug("[Evasion]: Found Nothing To Avoid!")
     return (closest != None, closest)
@@ -37,7 +37,7 @@ def get_avoid_location(game, elf, to_avoid):
         final_location = elfloc.add(elf_avoid_vec)
     elif type(to_avoid) is Elf:
         game.debug("[Evasion]: Avoiding Elf!")
-        elf_avoid_vec = Location(elf.row - avoidloc.row, elf.col - avoidloc.col)
+        elf_avoid_vec = Location(elf.get_location().row - avoidloc.row, elf.get_location().col - avoidloc.col)
         final_location = elfloc.add(elf_avoid_vec)
     else:
         raise Exception("[Evasion]: Trying to avoid something that isn't an IceTroll or an Elf! I don't know how to avoid [" + type(to_avoid) + "].")

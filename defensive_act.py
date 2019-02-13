@@ -1,40 +1,29 @@
 from elf_kingdom import *
-from Default_Values import *
+import Default_Values
 import constants
 def defensive_act(game):
-    enemyPortals = game.get_enemy_portals()
-    enemyElves = game.get_enemy_living_elves()
-    enemyCastle = game.get_enemy_castle()
-    enemyIceTrolls = game.get_enemy_ice_trolls()
-    enemyLavaGiants = game.get_enemy_lava_giants()
-    enemyManaFountains = game.get_enemy_mana_fountains()
-    myCastle = game.get_my_castle()
-    myPortals = game.get_my_portals()
-    myManaFountains = game.get_my_mana_fountains()
-    myElves = game.get_my_living_elves()
-    myIceTrolls = game.get_my_ice_trolls()
     targetType = None
     target = None
     closestElfToMyElfInDefendRange = None
     closestPortalToMyElfInDefendRange = None
     closestManaFountainToMyElfInDefendRange = None
-    if len(enemyElves)>0:
-        closestElfToMyElfInDefendRange = enemyElves[0]
-    if len(enemyPortals)>0:
-        closestPortalToMyElfInDefendRange = enemyPortals[0]
-    if len(enemyManaFountains)>0:
-        closestManaFountainToMyElfInDefendRange = enemyManaFountains[0]
-    for myE in myElves:
-        for enemyE in enemyElves:
-            if enemyE.distance(myCastle)<constants.RANGE_ELF_TO_MY_CASTLE_TO_DEFEND and enemyE.distance(myE)<=closestElfToMyElfInDefendRange.distance(myE):
+    if len(Default_Values.enemyElves)>0:
+        closestElfToMyElfInDefendRange = Default_Values.enemyElves[0]
+    if len(Default_Values.enemyPortals)>0:
+        closestPortalToMyElfInDefendRange = Default_Values.enemyPortals[0]
+    if len(Default_Values.enemyManaFountains)>0:
+        closestManaFountainToMyElfInDefendRange = Default_Values.enemyManaFountains[0]
+    for myE in Default_Values.myElves:
+        for enemyE in Default_Values.enemyElves:
+            if enemyE.distance(Default_Values.myCastle)<constants.RANGE_ELF_TO_MY_CASTLE_TO_DEFEND and enemyE.distance(myE)<=closestElfToMyElfInDefendRange.distance(myE):
                 closestElfToMyElfInDefendRange = enemyE
                 targetType = 0
-        for enemyP in enemyPortals:
-            if enemyP.distance(myCastle)<constants.RANGE_PORTAL_TO_MY_CASTLE_TO_DEFEND and enemyP.distance(myE)<=closestPortalToMyElfInDefendRange.distance(myE):
+        for enemyP in Default_Values.enemyPortals:
+            if enemyP.distance(Default_Values.myCastle)<constants.RANGE_PORTAL_TO_MY_CASTLE_TO_DEFEND and enemyP.distance(myE)<=closestPortalToMyElfInDefendRange.distance(myE):
                 closestPortalToMyElfInDefendRange = enemyP
                 targetType = 1
-        for enemyM in enemyManaFountains:
-            if enemyM.distance(myCastle)<constants.RANGE_MANA_FOUNTAIN_TO_MY_CASTLE_TO_DEFEND and enemyM.distance(myE)<=closestManaFountainToMyElfInDefendRange.distance(myE):
+        for enemyM in Default_Values.enemyManaFountains:
+            if enemyM.distance(Default_Values.myCastle)<constants.RANGE_MANA_FOUNTAIN_TO_MY_CASTLE_TO_DEFEND and enemyM.distance(myE)<=closestManaFountainToMyElfInDefendRange.distance(myE):
                 closestManaFountainToMyElfInDefendRange = enemyM
                 targetType = 2
                 game.debug("im here")

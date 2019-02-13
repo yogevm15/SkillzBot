@@ -1,5 +1,5 @@
 from elf_kingdom import *
-from Default_Values import *
+import Default_Values
 import constants
 
 class ManaReport(object):
@@ -11,4 +11,5 @@ class ManaReport(object):
 
 # Returns ManaReport
 def handle_mana(game, elf_act):
+    
     pass
