@@ -9,7 +9,8 @@ buildings_attacked = {}
 defense_building_elf = None
 current_build_task = None
 last_attack_turn = 0
-
+building_mana_fountain = False
+balagan = False
 
 def init(game):
     global buildings_attacked
@@ -78,11 +79,17 @@ def process_defense(game, elf):
 
 
 def process_defense_build(game, elf):
+    global building_mana_fountain
+    game.debug("BUILDING MANA FOUNTAIN: " + str(building_mana_fountain))
     task = build_task.get_build_task(game)
     if not task or task.elf != elf:
         process_defense_patrol(game, elf)
     else:
         task.process_building(game)
+        building_mana_fountain = not task.complete
+    if not task:
+        building_mana_fountain = False
+
 
 
 def process_defense_patrol(game, elf):
@@ -116,7 +123,7 @@ def process_defense_portal(game):
             if enemy is Elf:
                 should_defend_from_elf = True
 
-    if should_defend and game.turn - last_attack_turn > constants.DEFENSE_PORTAL_COOLDOWN or should_defend_from_elf:
+    if (should_defend and game.turn - last_attack_turn > constants.DEFENSE_PORTAL_COOLDOWN or should_defend_from_elf) and not building_mana_fountain:
         defense_portal.summon_ice_troll()
         last_attack_turn = game.turn
 
@@ -132,6 +139,8 @@ def check_assign_attack(game):
 
 
 def process_attack(game, elf):
+    global balagan
+
     loc = utils.get_attack_portal_loc(game)
     if utils.get_attack_portal(game) is None:
         if not elf.location.equals(loc):
@@ -148,6 +157,8 @@ def process_attack(game, elf):
             else:
                 elf.move_to(buildings[0])
         else:
+            balagan = True
+        if balagan:
             attack_portal.summon_lava_giant()
 
 

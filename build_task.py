@@ -16,6 +16,7 @@ class BuildTask(object):
         self.location = location
         self.type_of_building = type_of_building
         self.elf = self.choose_elf(game)
+        self.complete = False
 
     def choose_elf(self, game):
         """
@@ -36,11 +37,18 @@ class BuildTask(object):
             return False
         else:
             if self.type_of_building is ManaFountain:
-                self.elf.build_mana_fountain()
+                if self.elf.can_build_mana_fountain():
+                    self.elf.build_mana_fountain()
+                else:
+                    return False
             elif self.type_of_building is Portal:
-                self.elf.build_portal()
+                if self.elf.can_build_portal():
+                    self.elf.build_portal()
+                else:
+                    return False
             else:
                 raise Exception("Type of building was invalid! type: " + str(self.type_of_building))
+        self.complete = True
         return True
 
 
