@@ -2,6 +2,7 @@ from elf_kingdom import *
 import common
 import utils
 import constants
+import math
 
 attack_mission_elf = None
 buildings_attacked = {}
@@ -57,9 +58,43 @@ def process_defense(game, elf):
 
 def process_defense_build(game, elf):
     global defense_building_elf
+
     if defense_building_elf == None or defense_building_elf == elf:
         defense_building_elf = elf
-        game.debug("Building!")
+        if len(game.get_my_mana_fountains()) < constants.MANA_FOUNTAINS:
+            game.debug("Building mana fountain!")
+
+            # Calculate location by using the maayan formula
+            mid = game.get_my_castle().get_location().towards(game.get_enemy_castle(), constants.DEFENSE_BUILDINGS_RADIUS)
+            farthest_buildable_location = None
+            farthest_dist = 1 << 31
+
+            castle_loc = game.get_my_castle().get_location()
+
+            for i in range(360):
+                ang = float(i) / 180
+                x = math.cos(ang) * constants.DEFENSE_BUILDINGS_RADIUS
+                y = math.sin(ang) * constants.DEFENSE_BUILDINGS_RADIUS
+                loc = Location(castle_loc.row + y, castle_loc.col + x)
+                #game.debug(loc)
+                if not loc.in_map():
+                    game.debug("Not in map!")
+                if game.can_build_mana_fountain_at(loc):
+                    dst = mid.distance(loc)
+                    game.debug("Comparing " + str(dst) + " to " + str(farthest_dist))
+                    if dst < farthest_dist:
+                        farthest_dist = dst
+                        farthest_buildable_location = loc
+                        game.debug("Found Location!")
+            # Note for self: not working!
+            game.debug("Found farthest location to build: " + str(farthest_buildable_location))
+
+            if not elf.location.equals(farthest_buildable_location):
+                elf.move_to(farthest_buildable_location)
+            else:
+                elf.build_mana_fountain()
+
+        #game.debug("Building!")
     else:
         process_defense_patrol(game, elf)
 
