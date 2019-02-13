@@ -1,5 +1,6 @@
 defense_range = 0
 
+
 def update(game):
     global defense_range
 

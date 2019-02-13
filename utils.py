@@ -1,5 +1,5 @@
 import constants
-
+from elf_kingdom import *
 
 def get_enemy_buildings_in_range(game, range_of, range):
     """
@@ -55,3 +55,35 @@ def get_defense_portal(game):
     if len(game.get_my_portals()) < 1:
         return None
     return sort_by_distance(game.get_my_portals(), game.get_my_castle())[0]
+
+
+def get_my_dead_elves(game):
+    elves = []
+    for elf in game.get_all_my_elves():
+        if not elf.is_alive():
+            elves.append(elf)
+    return elves
+
+
+def get_attack_portal_loc(game):
+    return game.get_my_castle().get_location().towards(game.get_enemy_castle(), game.get_my_castle().distance(game.get_enemy_castle()) / 2)
+
+
+def get_attack_portal(game):
+    if len(game.get_my_portals()) < 2:
+        game.debug("[Attack Portal Finder]: No Attack Portal!")
+        return None
+    return sort_by_distance(game.get_my_portals(), game.get_my_castle())[-1]
+
+
+def sort_by_importance(buildings, strength = (ManaFountain, Portal)):
+    buildings_sorted = False
+    while not buildings_sorted:
+        buildings_sorted = True
+        for i in range(len(buildings)-1):
+            b1 = buildings[i].__class__
+            b2 = buildings[i+1].__class__
+            if strength.index(b1) > strength.index(b2):
+                buildings[i], buildings[i+1] = buildings[i+1], buildings[i]
+                buildings_sorted = False
+    return buildings

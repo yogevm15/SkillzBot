@@ -10,6 +10,7 @@ defense_building_elf = None
 current_build_task = None
 last_attack_turn = 0
 
+
 def init(game):
     global buildings_attacked
     for elf in game.get_all_my_elves():
@@ -34,6 +35,7 @@ def do_turn(game):
             process_attack(game, elf)
 
     process_defense_portal(game)
+    check_assign_attack(game)
 
 
 def process_defense(game, elf):
@@ -115,8 +117,37 @@ def process_defense_portal(game):
                 should_defend_from_elf = True
 
     if should_defend and game.turn - last_attack_turn > constants.DEFENSE_PORTAL_COOLDOWN or should_defend_from_elf:
-        defense_portal.spawn_ice_trolls()
+        defense_portal.summon_ice_troll()
         last_attack_turn = game.turn
 
+
+def check_assign_attack(game):
+    global attack_mission_elf
+    if utils.need_defense_portals(game) or utils.need_mana_fountains(game) \
+            or len(utils.get_my_dead_elves(game)) != 0 or attack_mission_elf is not None:
+        return
+    loc = utils.get_attack_portal_loc(game)
+    elf = utils.sort_by_distance(game.get_my_living_elves(), loc)[0]
+    attack_mission_elf = elf
+
+
 def process_attack(game, elf):
-    pass
+    loc = utils.get_attack_portal_loc(game)
+    if utils.get_attack_portal(game) is None:
+        if not elf.location.equals(loc):
+            elf.move_to(loc)
+        else:
+            elf.build_portal()
+    else:
+        attack_portal = utils.get_attack_portal(game)
+        buildings =  utils.get_enemy_buildings_in_range(game, game.get_enemy_castle(), common.defense_range)
+        utils.sort_by_importance(buildings)
+        if len(buildings) > 0:
+            if elf.in_attack_range(buildings[0]):
+                elf.attack(buildings[0])
+            else:
+                elf.move_to(buildings[0])
+        else:
+            attack_portal.summon_lava_giant()
+
+
