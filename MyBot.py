@@ -1,19 +1,27 @@
+import constants
 from elf_kingdom import *
 import common
 import utils
-import constants
-import math
+import build_task
 
 attack_mission_elf = None
 buildings_attacked = {}
 defense_building_elf = None
+current_build_task = None
+last_attack_turn = 0
 
 def init(game):
     global buildings_attacked
     for elf in game.get_all_my_elves():
         buildings_attacked[elf] = None
 
+
 def do_turn(game):
+    """
+    A single turn
+    :type game: Game
+    """
+
     if game.turn == 1:
         init(game)
 
@@ -25,7 +33,15 @@ def do_turn(game):
         else:
             process_attack(game, elf)
 
+    process_defense_portal(game)
+
+
 def process_defense(game, elf):
+    """
+    :type elf: Elf
+    :type game: Game
+    """
+
     global buildings_attacked
 
     buildings_to_destroy = utils.get_enemy_buildings_in_range(game, game.get_my_castle(), common.defense_range)
@@ -35,21 +51,24 @@ def process_defense(game, elf):
 
     building_to_attack = buildings_attacked[elf]
     assigned_new = False
-    if building_to_attack == None or building_to_attack not in buildings_to_destroy:
+    if building_to_attack is None or building_to_attack not in buildings_to_destroy:
 
         buildings_attacked[elf] = None
         game.debug("Assigning New Building To Destroy!")
-        # Find non assigned building
+
         for b in buildings_to_destroy:
-            if not b in buildings_attacked.values():
+            if b not in buildings_attacked.values():
                 buildings_attacked[elf] = b
                 building_to_attack = b
                 assigned_new = True
+                game.debug("Successfully Found New Building!")
                 break
-    if not assigned_new and building_to_attack == None:
+
+    if not assigned_new and building_to_attack is None:
+        game.debug("No Building To Attack!")
         process_defense_build(game, elf)
     else:
-        game.debug("Destroying " + str(building_to_attack))
+        game.debug("Attacking " + str(building_to_attack))
         if elf.in_attack_range(building_to_attack):
             elf.attack(building_to_attack)
         else:
@@ -57,49 +76,47 @@ def process_defense(game, elf):
 
 
 def process_defense_build(game, elf):
-    global defense_building_elf
-
-    if defense_building_elf == None or defense_building_elf == elf:
-        defense_building_elf = elf
-        if len(game.get_my_mana_fountains()) < constants.MANA_FOUNTAINS:
-            game.debug("Building mana fountain!")
-
-            # Calculate location by using the maayan formula
-            mid = game.get_my_castle().get_location().towards(game.get_enemy_castle(), constants.DEFENSE_BUILDINGS_RADIUS)
-            farthest_buildable_location = None
-            farthest_dist = 1 << 31
-
-            castle_loc = game.get_my_castle().get_location()
-
-            for i in range(360):
-                ang = float(i) / 180
-                x = math.cos(ang) * constants.DEFENSE_BUILDINGS_RADIUS
-                y = math.sin(ang) * constants.DEFENSE_BUILDINGS_RADIUS
-                loc = Location(castle_loc.row + y, castle_loc.col + x)
-                #game.debug(loc)
-                if not loc.in_map():
-                    game.debug("Not in map!")
-                if game.can_build_mana_fountain_at(loc):
-                    dst = mid.distance(loc)
-                    game.debug("Comparing " + str(dst) + " to " + str(farthest_dist))
-                    if dst < farthest_dist:
-                        farthest_dist = dst
-                        farthest_buildable_location = loc
-                        game.debug("Found Location!")
-            # Note for self: not working!
-            game.debug("Found farthest location to build: " + str(farthest_buildable_location))
-
-            if not elf.location.equals(farthest_buildable_location):
-                elf.move_to(farthest_buildable_location)
-            else:
-                elf.build_mana_fountain()
-
-        #game.debug("Building!")
-    else:
+    task = build_task.get_build_task(game)
+    if not task or task.elf != elf:
         process_defense_patrol(game, elf)
+    else:
+        task.process_building(game)
+
 
 def process_defense_patrol(game, elf):
-    pass
+    defend_from = utils.get_to_defend_from(game)
+    utils.sort_by_distance(defend_from, elf)
+
+    if len(defend_from) < 1:
+        game.debug("Nothing to defend from!")
+    else:
+        enemy = defend_from[0]
+        if enemy.distance(elf) <= common.defense_range:
+            if elf.in_attack_range(enemy):
+                elf.attack(enemy)
+            else:
+                elf.move_to(enemy)
+
+
+def process_defense_portal(game):
+    global last_attack_turn
+    defense_portal = utils.get_defense_portal(game)
+    if defense_portal is None:
+        game.debug("[Defense Portal]: No Defense Portal!")
+        return
+
+    to_defend = utils.get_to_defend_from(game)
+    should_defend = False
+    should_defend_from_elf = False
+    for enemy in to_defend:
+        if enemy.distance(game.get_my_castle()) < constants.DEFENSE_RADIUS:
+            should_defend = True
+            if enemy is Elf:
+                should_defend_from_elf = True
+
+    if should_defend and game.turn - last_attack_turn > constants.DEFENSE_PORTAL_COOLDOWN or should_defend_from_elf:
+        defense_portal.spawn_ice_trolls()
+        last_attack_turn = game.turn
 
 def process_attack(game, elf):
     pass
