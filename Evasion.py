@@ -1,6 +1,5 @@
 from elf_kingdom import *
 import constants
-import Evasion
 # Returns tuple (is should evade: bool, what to evade: map object)
 def should_avoid(game, elf, target):
     avoidable = game.get_enemy_ice_trolls()
