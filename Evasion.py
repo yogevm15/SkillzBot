@@ -29,16 +29,29 @@ def get_avoid_location(game, elf, to_avoid):
     avoidloc = to_avoid.location
 
     final_location = None
-
-    if type(to_avoid) is IceTroll:
-        game.debug("[Evasion]: Avoiding Ice Troll!")
-        elf_avoid_vec = Location(elf.row - avoidloc.row, elf.col - avoidloc.col)
-        final_location = elfloc.add(elf_avoid_vec)
-    elif type(to_avoid) is Elf:
-        game.debug("[Evasion]: Avoiding Elf!")
-        elf_avoid_vec = Location(elf.get_location().row - avoidloc.row, elf.get_location().col - avoidloc.col)
-        final_location = elfloc.add(elf_avoid_vec)
+    if avoidloc.col-elf.get_location().col == 0:
+        X = elf.get_location().col+100
+        Y = elf.get_location().row
+        final_location = Location(int(Y),int(X))
+    elif avoidloc.row-elf.get_location().row ==0:#< avoidloc.col-elf.get_location().col:
+        X = elf.get_location().col
+        Y = elf.get_location().row+100
+        final_location = Location(int(Y),int(X))
     else:
-        raise Exception("[Evasion]: Trying to avoid something that isn't an IceTroll or an Elf! I don't know how to avoid [" + type(to_avoid) + "].")
+        if type(to_avoid) is IceTroll:
+            game.debug("[Evasion]: Avoiding Ice Troll!")
+            m = float(avoidloc.row-elf.get_location().row)/(avoidloc.col-elf.get_location().col)
+            print avoidloc.row-elf.get_location().row , avoidloc.col-elf.get_location().col, m
+            m = m
+            X = elf.get_location().col+100
+            Y = elf.get_location().row+m*100
+            final_location = Location(int(Y),int(X))
+        elif type(to_avoid) is Elf:
+            game.debug("[Evasion]: Avoiding Elf!")
+            m = float(avoidloc.row-elf.get_location().row)/(avoidloc.col-elf.get_location().col)
+            m = -1/m
+            X = elf.get_location().col+100
+            Y = elf.get_location().row+m*100
+            final_location = Location(int(Y),int(X))
 
     return final_location
